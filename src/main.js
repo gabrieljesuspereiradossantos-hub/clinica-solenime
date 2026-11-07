@@ -18,17 +18,4 @@ if (menuButton && mobileNav) {
 
 document.querySelector('#year').textContent = String(new Date().getFullYear());
 
-const passage = document.querySelector('.visual-passage');
-const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
-let ticking = false;
-function updatePassage() {
-  ticking = false;
-  if (!passage || reduceMotion.matches || innerWidth < 600) return;
-  const rect = passage.getBoundingClientRect();
-  const progress = Math.min(1, Math.max(0, (innerHeight - rect.top) / (innerHeight + rect.height)));
-  passage.style.setProperty('--passage-shift', `${(0.5 - progress) * 42}px`);
-  passage.style.setProperty('--passage-opacity', String(Math.min(1, 0.65 + progress * 0.35)));
-}
-addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(updatePassage); } }, { passive: true });
-addEventListener('resize', updatePassage);
-updatePassage();
+import './film.js';
