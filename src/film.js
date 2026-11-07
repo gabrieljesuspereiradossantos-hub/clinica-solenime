@@ -6,7 +6,7 @@ if (story) {
   const portrait = story.querySelector('.film-portrait');
   const video = story.querySelector('video');
   const frameImage = story.querySelector('.film-frame');
-  const useFrames = matchMedia('(max-width: 820px), (max-width: 1100px) and (any-pointer: coarse)').matches;
+  let useFrames = matchMedia('(max-width: 820px), (max-width: 1100px) and (any-pointer: coarse)').matches;
   // The 8-second clip is exported at 24 fps into twelve 4×4 sheets.
   const sheetCount = 12;
   const framesPerSheet = 16;
@@ -38,16 +38,31 @@ if (story) {
       if (key < 0 || key >= sheetCount || sheets.has(key)) continue;
       const sheet = new Image();
       sheet.addEventListener('load', schedule, { once: true });
-      sheet.src = `/video/frames/sheet-${String(key).padStart(2, '0')}.webp`;
+      sheet.addEventListener('error', schedule, { once: true });
+      sheet.alt = '';
+      sheet.src = `/video/frames/mobile-${String(key).padStart(2, '0')}.jpg`;
       sheets.set(key, sheet);
     }
     const sheet = sheets.get(sheetIndex);
-    if (!sheet.complete || !sheet.naturalWidth || index === drawnFrame) return;
+    if (!sheet.complete || index === drawnFrame) return;
+    if (!sheet.naturalWidth) {
+      useFrames = false;
+      loadVideo();
+      return;
+    }
     const cell = index % framesPerSheet;
-    frameImage.style.backgroundImage = `url("${sheet.src}")`;
-    frameImage.style.backgroundPosition = `${(cell % 4) * 100 / 3}% ${Math.floor(cell / 4) * 100 / 3}%`;
+    sheet.style.transform = `translate3d(${(cell % 4) * -25}%, ${Math.floor(cell / 4) * -25}%, 0)`;
+    if (frameImage.firstChild !== sheet) {
+      frameImage.textContent = '';
+      frameImage.append(sheet);
+    }
     drawnFrame = index;
     portrait.classList.add('has-frame');
+  }
+
+  function loadVideo() {
+    video.preload = 'auto';
+    video.src = video.dataset.src;
   }
 
   function seek() {
@@ -100,7 +115,8 @@ if (story) {
       chapter.section.style.setProperty('--chapter-visibility', visibility);
     }
     if (useFrames) {
-      showFrame(progress);
+      // Make the first short swipe visible while keeping the last frame at the end.
+      showFrame(progress / (0.45 + 0.55 * progress));
     } else if (Number.isFinite(video.duration)) {
       targetTime = progress * Math.max(0, video.duration - 1 / 24);
       seek();
@@ -113,17 +129,19 @@ if (story) {
 
   video.addEventListener('loadedmetadata', schedule);
   video.addEventListener('seeked', seek);
-  video.addEventListener('loadeddata', () => portrait.classList.add('has-video'));
+  video.addEventListener('loadeddata', () => {
+    portrait.classList.remove('has-frame');
+    portrait.classList.add('has-video');
+  });
   video.addEventListener('error', () => portrait.classList.remove('has-video'));
   addEventListener('scroll', schedule, { passive: true });
   addEventListener('resize', schedule);
-  new ResizeObserver(schedule).observe(story);
+  if (useFrames) addEventListener('touchmove', schedule, { passive: true });
+  window.visualViewport?.addEventListener('resize', schedule);
+  if ('ResizeObserver' in window) new ResizeObserver(schedule).observe(story);
   story.classList.add('motion-enabled');
   document.body.classList.add('film-opening-enabled');
-  if (!useFrames) {
-    video.preload = 'auto';
-    video.src = video.dataset.src;
-  }
+  if (!useFrames) loadVideo();
   schedule();
 
   const segmenter = typeof Intl.Segmenter === 'function'

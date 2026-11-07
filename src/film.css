@@ -16,6 +16,7 @@
 .film-stage {
   position: sticky;
   top: 0;
+  height: 100vh;
   height: 100svh;
   overflow: hidden;
 }
@@ -54,16 +55,23 @@
   position: absolute;
   left: var(--frame-x);
   top: var(--frame-y);
-  width: max(100%, calc(100svh * 16 / 9));
+  width: max(100%, 177.778vh);
+  width: max(100%, 177.778svh);
   aspect-ratio: 16 / 9;
   transform: translate(calc(-1 * var(--frame-x)), calc(-1 * var(--frame-y)));
-  background-repeat: no-repeat;
-  background-size: 400% 400%;
+  overflow: hidden;
+}
+.film-frame img {
+  display: block;
+  width: 400%;
+  max-width: none;
+  height: 400%;
 }
 
 .film-opening { display: none; }
 .motion-enabled .film-opening {
   display: block;
+  min-height: 100vh;
   min-height: 100svh;
 }
 body:has(.film-story) .site-header { border-bottom: 0; }
@@ -316,59 +324,7 @@ body:has(.film-story) .site-header { border-bottom: 0; }
 .film-story .visual-passage h2 { margin-bottom: 0; }
 .film-story > .services { align-content: start; }
 
-.gallery-track {
-  display: flex;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  overscroll-behavior-x: contain;
-  scrollbar-width: thin;
-  scrollbar-color: #bd9864 #302219;
-  border: 1px solid #c6a27470;
-  border-radius: 1rem;
-  background: #302219;
-}
-
-.gallery-track figure {
-  flex: 0 0 100%;
-  min-width: 0;
-  margin: 0;
-  scroll-snap-align: start;
-}
-
-.gallery-track img {
-  display: block;
-  width: 100%;
-  height: clamp(12rem, 42svh, 29rem);
-  object-fit: contain;
-}
-
-.gallery-controls:not([hidden]) {
-  display: flex;
-  align-items: center;
-  gap: .85rem;
-  margin-top: .8rem;
-}
-
-.gallery-controls button {
-  width: 44px;
-  height: 44px;
-  border: 1px solid #bd9864;
-  border-radius: 50%;
-  background: #302219;
-  color: #f4ce91;
-  cursor: pointer;
-}
-
-.gallery-controls button:disabled { opacity: .55; cursor: default; }
-.gallery-count { color: #eadbca; font-size: .85rem; font-variant-numeric: tabular-nums; }
-.gallery-autoplay { margin-inline-start: auto; }
-
-@media (max-width: 820px) and (orientation: portrait), (max-width: 540px) {
-  .gallery-track img { height: clamp(10rem, 31svh, 21rem); }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .gallery-controls .gallery-autoplay { display: none; }
   .instagram-face,
   .instagram-face::before {
     transition: none;
