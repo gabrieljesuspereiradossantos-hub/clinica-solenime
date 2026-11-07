@@ -5,9 +5,8 @@ const story = document.querySelector('.film-story');
 if (story) {
   const portrait = story.querySelector('.film-portrait');
   const video = story.querySelector('video');
-  const canvas = story.querySelector('canvas');
+  const frameImage = story.querySelector('.film-frame');
   const useFrames = matchMedia('(max-width: 820px), (max-width: 1100px) and (any-pointer: coarse)').matches;
-  const context = useFrames ? canvas.getContext('2d') : null;
   // The 8-second clip is exported at 24 fps into twelve 4×4 sheets.
   const sheetCount = 12;
   const framesPerSheet = 16;
@@ -45,9 +44,8 @@ if (story) {
     const sheet = sheets.get(sheetIndex);
     if (!sheet.complete || !sheet.naturalWidth || index === drawnFrame) return;
     const cell = index % framesPerSheet;
-    const { width, height } = canvas;
-    context.drawImage(sheet, (cell % 4) * width, Math.floor(cell / 4) * height,
-      width, height, 0, 0, width, height);
+    frameImage.style.backgroundImage = `url("${sheet.src}")`;
+    frameImage.style.backgroundPosition = `${(cell % 4) * 100 / 3}% ${Math.floor(cell / 4) * 100 / 3}%`;
     drawnFrame = index;
     portrait.classList.add('has-frame');
   }
@@ -101,7 +99,7 @@ if (story) {
       chapter.section.classList.toggle('is-writing', inView);
       chapter.section.style.setProperty('--chapter-visibility', visibility);
     }
-    if (context) {
+    if (useFrames) {
       showFrame(progress);
     } else if (Number.isFinite(video.duration)) {
       targetTime = progress * Math.max(0, video.duration - 1 / 24);
@@ -122,7 +120,7 @@ if (story) {
   new ResizeObserver(schedule).observe(story);
   story.classList.add('motion-enabled');
   document.body.classList.add('film-opening-enabled');
-  if (!context) {
+  if (!useFrames) {
     video.preload = 'auto';
     video.src = video.dataset.src;
   }
