@@ -1,7 +1,6 @@
 import './film.css';
 
 const story = document.querySelector('.film-story');
-const motion = matchMedia('(prefers-reduced-motion: reduce)');
 
 if (story) {
   const portrait = story.querySelector('.film-portrait');
@@ -10,7 +9,6 @@ if (story) {
   const header = document.querySelector('.site-header');
   const brand = header.querySelector('.brand');
   const menuToggle = header.querySelector('.menu-toggle');
-  const motionToggle = story.querySelector('.film-motion-toggle');
   const narrow = matchMedia('(max-width: 820px)');
   const copy = 'h2, .intro-grid p:not(.section-label), .services-copy > p, .rating > p:not(.rating-number), .contact-inner > p, .address > p:not(:has(a))';
   const chapters = [...story.querySelectorAll(':scope > section')].map(section => ({
@@ -20,19 +18,16 @@ if (story) {
   }));
   let frame = 0;
   let targetTime = 0;
-  let motionOverride = sessionStorage.getItem('solenime-scroll-video') === 'on';
 
   const clamp = (value) => Math.max(0, Math.min(1, value));
-  const motionEnabled = () => !motion.matches || motionOverride;
 
   function seek() {
-    if (!motionEnabled() || video.readyState < 1 || video.seeking) return;
+    if (video.readyState < 1 || video.seeking) return;
     if (Math.abs(video.currentTime - targetTime) > 0.005) video.currentTime = targetTime;
   }
 
   function update() {
     frame = 0;
-    if (!motionEnabled()) return;
     const rect = story.getBoundingClientRect();
     const viewport = portrait.clientHeight;
     const dock = clamp(-rect.top / Math.max(1, opening.offsetHeight * 0.86));
@@ -86,34 +81,18 @@ if (story) {
     if (!frame) frame = requestAnimationFrame(update);
   }
 
-  function syncMotion() {
-    const enabled = motionEnabled();
-    story.classList.toggle('motion-enabled', enabled);
-    document.body.classList.toggle('film-opening-enabled', enabled);
-    if (!enabled) document.body.classList.remove('film-opening-play');
-    motionToggle.hidden = !motion.matches;
-    motionToggle.textContent = enabled ? 'Desativar vídeo na rolagem' : 'Ativar vídeo na rolagem';
-    if (enabled && !video.hasAttribute('src')) {
-      video.preload = 'auto';
-      video.src = video.dataset.src;
-    }
-    schedule();
-  }
-
-  motionToggle.addEventListener('click', () => {
-    motionOverride = !motionOverride;
-    sessionStorage.setItem('solenime-scroll-video', motionOverride ? 'on' : 'off');
-    syncMotion();
-  });
   video.addEventListener('loadedmetadata', schedule);
   video.addEventListener('seeked', seek);
   video.addEventListener('loadeddata', () => portrait.classList.add('has-video'));
   video.addEventListener('error', () => portrait.classList.remove('has-video'));
   addEventListener('scroll', schedule, { passive: true });
   addEventListener('resize', schedule);
-  motion.addEventListener('change', syncMotion);
   new ResizeObserver(schedule).observe(story);
-  syncMotion();
+  story.classList.add('motion-enabled');
+  document.body.classList.add('film-opening-enabled');
+  video.preload = 'auto';
+  video.src = video.dataset.src;
+  schedule();
 
   const segmenter = typeof Intl.Segmenter === 'function'
     ? new Intl.Segmenter('pt-BR', { granularity: 'grapheme' })

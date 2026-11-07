@@ -124,7 +124,6 @@ body:has(.film-story) .site-header { border-bottom: 0; }
 .film-story :is(.rating, .address) { border-color: #eadbca50; }
 .film-story .rating-number { font-size: clamp(4.5rem, 8vw, 7.25rem); margin-bottom: .65rem; }
 .film-story .hero-actions { flex-wrap: wrap; gap: 1rem 1.5rem; }
-.film-story .scroll-cue { right: auto; left: max(2rem, calc((100vw - 1320px) / 2)); }
 .site-header .header-contact {
   align-items: center;
   min-height: 44px;
@@ -152,16 +151,6 @@ body:has(.film-story) .site-header { border-bottom: 0; }
 }
 .film-story .button:hover { transform: none; }
 .film-story .button:active { transform: scale(.97); }
-.film-motion-toggle {
-  min-height: 44px;
-  padding: .55rem .9rem;
-  border: 1px solid #e9cba380;
-  border-radius: 999px;
-  background: #211913;
-  color: var(--film-paper);
-  font-size: .8rem;
-  cursor: pointer;
-}
 .menu-toggle { min-width: 44px; min-height: 44px; }
 
 @media (hover: hover) and (pointer: fine) {
@@ -228,14 +217,17 @@ body:has(.film-story) .site-header { border-bottom: 0; }
   .film-story .hero-place,
   .film-story .section-label { margin-bottom: 1rem; }
   .film-story .hero-actions { flex-direction: row; align-items: center; }
-  .film-story .scroll-cue { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .film-story:not(.motion-enabled) .film-portrait video { display: none; }
-  .film-story:not(.motion-enabled) .film-portrait img { --zoom: 0 !important; }
-  .film-story:not(.motion-enabled) .film-glyph { opacity: 1; }
-  .film-story:not(.motion-enabled) .film-action { opacity: 1; }
+  .film-opening-play.film-opening-enabled .site-header .brand img,
+  .film-opening-play .motion-enabled .film-stage { animation: none; }
+  .film-story .film-portrait > :is(img, video) { --zoom: 0; }
+  .motion-enabled .film-writing :is(.film-glyph, .film-action) {
+    animation: none;
+    opacity: 1;
+  }
+  .motion-enabled .film-writing:not(.is-writing) .film-action { pointer-events: auto; }
   .film-story .button { transition: none; }
   .film-story .button:active { transform: none; }
 }
