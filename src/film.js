@@ -17,7 +17,7 @@ if (story) {
   const brand = header.querySelector('.brand');
   const menuToggle = header.querySelector('.menu-toggle');
   const stackedLayout = matchMedia('(max-width: 820px) and (orientation: portrait), (max-width: 540px)');
-  const copy = 'h2, .intro-grid p:not(.section-label), .services-copy > p, .rating > p:not(.rating-number), .contact-inner > p, .address > p:not(:has(a))';
+  const copy = 'h2, .intro-grid p:not(.section-label), .services-copy > p, .rating > p:not(.rating-number), .contact-inner > p:not(.section-label), .address > p:not(:has(a))';
   const chapters = [...story.querySelectorAll(':scope > section')].map(section => ({
     section,
     content: section.querySelector(':scope > .wrap'),
