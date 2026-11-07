@@ -5,11 +5,19 @@ const story = document.querySelector('.film-story');
 if (story) {
   const portrait = story.querySelector('.film-portrait');
   const video = story.querySelector('video');
+  const canvas = story.querySelector('canvas');
+  const useFrames = matchMedia('(max-width: 820px), (max-width: 1100px) and (any-pointer: coarse)').matches;
+  const context = useFrames ? canvas.getContext('2d') : null;
+  // The 8-second clip is exported at 24 fps into twelve 4×4 sheets.
+  const sheetCount = 12;
+  const framesPerSheet = 16;
+  const sheets = new Map();
+  let drawnFrame = -1;
   const opening = story.querySelector('.film-opening');
   const header = document.querySelector('.site-header');
   const brand = header.querySelector('.brand');
   const menuToggle = header.querySelector('.menu-toggle');
-  const narrow = matchMedia('(max-width: 820px)');
+  const stackedLayout = matchMedia('(max-width: 820px) and (orientation: portrait), (max-width: 540px)');
   const copy = 'h2, .intro-grid p:not(.section-label), .services-copy > p, .rating > p:not(.rating-number), .contact-inner > p, .address > p:not(:has(a))';
   const chapters = [...story.querySelectorAll(':scope > section')].map(section => ({
     section,
@@ -20,6 +28,29 @@ if (story) {
   let targetTime = 0;
 
   const clamp = (value) => Math.max(0, Math.min(1, value));
+
+  function showFrame(progress) {
+    const index = Math.round(progress * (sheetCount * framesPerSheet - 1));
+    const sheetIndex = Math.floor(index / framesPerSheet);
+    for (const key of sheets.keys()) {
+      if (Math.abs(key - sheetIndex) > 1) sheets.delete(key);
+    }
+    for (const key of [sheetIndex, sheetIndex + 1, sheetIndex - 1]) {
+      if (key < 0 || key >= sheetCount || sheets.has(key)) continue;
+      const sheet = new Image();
+      sheet.addEventListener('load', schedule, { once: true });
+      sheet.src = `/video/frames/sheet-${String(key).padStart(2, '0')}.webp`;
+      sheets.set(key, sheet);
+    }
+    const sheet = sheets.get(sheetIndex);
+    if (!sheet.complete || !sheet.naturalWidth || index === drawnFrame) return;
+    const cell = index % framesPerSheet;
+    const { width, height } = canvas;
+    context.drawImage(sheet, (cell % 4) * width, Math.floor(cell / 4) * height,
+      width, height, 0, 0, width, height);
+    drawnFrame = index;
+    portrait.classList.add('has-frame');
+  }
 
   function seek() {
     if (video.readyState < 1 || video.seeking) return;
@@ -41,11 +72,12 @@ if (story) {
     const undocked = 1 - dock;
     const distance = Math.max(1, rect.height - viewport);
     const progress = clamp(-rect.top / distance);
-    const mobile = narrow.matches;
+    const mobile = stackedLayout.matches;
     const start = viewport * 0.98;
     const exitStart = viewport * (mobile ? 0.91 : 0.69);
     const exitEnd = viewport * (mobile ? 0.59 : 0.13);
-    const safeTop = viewport * 0.56;
+    const headerBottom = header.getBoundingClientRect().bottom;
+    const safeTop = Math.max(headerBottom + 8, mobile ? viewport * 0.56 : 0);
     const positions = chapters.map(({ section, content, heading }) => ({
       box: section.getBoundingClientRect(),
       contentBottom: content.getBoundingClientRect().bottom,
@@ -59,11 +91,9 @@ if (story) {
     header.style.setProperty('--brand-dock', dock);
     for (const [index, chapter] of chapters.entries()) {
       const { box, contentBottom, headingTop } = positions[index];
-      if (mobile) {
-        const inset = Math.min(box.height, Math.max(0, safeTop - box.top));
-        chapter.section.style.setProperty('--face-inset', `${inset}px`);
-        chapter.section.style.setProperty('--face-feather', `${Math.min(inset, 40)}px`);
-      }
+      const inset = Math.min(box.height, Math.max(0, safeTop - box.top));
+      chapter.section.style.setProperty('--content-inset', `${inset}px`);
+      chapter.section.style.setProperty('--content-feather', `${Math.min(inset, 40)}px`);
       if (headingTop === undefined) continue;
       const progressOut = clamp((contentBottom - exitEnd) / (exitStart - exitEnd));
       const visibility = progressOut * progressOut * (3 - 2 * progressOut);
@@ -71,7 +101,9 @@ if (story) {
       chapter.section.classList.toggle('is-writing', inView);
       chapter.section.style.setProperty('--chapter-visibility', visibility);
     }
-    if (Number.isFinite(video.duration)) {
+    if (context) {
+      showFrame(progress);
+    } else if (Number.isFinite(video.duration)) {
       targetTime = progress * Math.max(0, video.duration - 1 / 24);
       seek();
     }
@@ -90,8 +122,10 @@ if (story) {
   new ResizeObserver(schedule).observe(story);
   story.classList.add('motion-enabled');
   document.body.classList.add('film-opening-enabled');
-  video.preload = 'auto';
-  video.src = video.dataset.src;
+  if (!context) {
+    video.preload = 'auto';
+    video.src = video.dataset.src;
+  }
   schedule();
 
   const segmenter = typeof Intl.Segmenter === 'function'
