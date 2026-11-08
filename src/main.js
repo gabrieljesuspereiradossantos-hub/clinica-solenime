@@ -41,3 +41,5 @@ if (instagram) {
 }
 
 import './film.js';
+
+import './panoramic-gallery.js';
