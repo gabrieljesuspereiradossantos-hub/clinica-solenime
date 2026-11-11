@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Domínio provisório da Vercel; trocar pelo domínio próprio da clínica quando houver. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://clinica-solenime-silk.vercel.app/</loc></url>
+  <url><loc>https://clinica-solenime-silk.vercel.app/protocolo-sole</loc></url>
+  <url><loc>https://clinica-solenime-silk.vercel.app/procedimentos</loc></url>
+  <url><loc>https://clinica-solenime-silk.vercel.app/sobre</loc></url>
+  <url><loc>https://clinica-solenime-silk.vercel.app/contato</loc></url>
+</urlset>

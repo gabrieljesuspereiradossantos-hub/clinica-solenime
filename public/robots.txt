@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://clinica-solenime-silk.vercel.app/sitemap.xml

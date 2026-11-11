@@ -1,0 +1,394 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #fbf8f4;
+  --fg: #2b2622;
+  /* Curvas fortes (Emil Kowalski): nunca ease-in em UI */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  color-scheme: light;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Manrope", system-ui, sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: clamp(3.25rem, 6.2vw + 0.5rem, 6.5rem);
+  line-height: 0.94;
+  letter-spacing: -0.02em;
+}
+h2 {
+  font-size: clamp(2.25rem, 2.6vw + 1.25rem, 3.5rem);
+}
+h3 {
+  font-size: clamp(1.5rem, 1vw + 1.1rem, 2rem);
+}
+
+@layer components {
+  .eyebrow {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    line-height: 1.5;
+    color: theme("colors.champagne.700");
+  }
+  .eyebrow-dark {
+    color: theme("colors.champagne.400");
+  }
+  /* Momento tipográfico (word-highlight) */
+  .statement {
+    font-size: clamp(2.375rem, 4.6vw + 0.75rem, 5.25rem);
+    line-height: 1.08;
+    letter-spacing: -0.015em;
+    text-wrap: pretty;
+  }
+  /* Fechamento em tipo grande */
+  .close-type {
+    font-size: clamp(4.25rem, 10vw + 1rem, 10.5rem);
+    line-height: 0.9;
+    letter-spacing: -0.03em;
+  }
+  /* h1 das páginas internas: um degrau abaixo do hero da home */
+  .h1-pagina {
+    font-size: clamp(2.75rem, 3.6vw + 1.25rem, 5rem);
+    line-height: 0.98;
+  }
+}
+
+/* ---------- Motion ----------
+   Regras do conceito v2: só o hero entra no load e a home tem dois momentos ligados ao scroll
+   (word-highlight e capítulos). Nada de fade-in em cada seção. Só transform, opacity e clip-path. */
+
+/* Entrada do hero: uma vez, em cascata de 60ms */
+@keyframes enter-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.enter {
+  animation: enter-up 700ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 60ms + 80ms);
+}
+
+/* Enquanto a tela de abertura está na frente (index.html), a entrada do hero espera */
+html.is-loading .enter,
+html.is-loading .enter-photo {
+  animation-play-state: paused;
+}
+
+/* Foto do hero: revelação de baixo para cima */
+@keyframes reveal-clip {
+  from {
+    clip-path: inset(100% 0 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+.enter-photo {
+  animation: reveal-clip 900ms var(--ease-in-out) 150ms both;
+}
+
+/* Hero em tela cheia: enquanto a cortina abre, a foto assenta de 1.06 para 1 (mesmo gesto das fotos .wipe) */
+@keyframes hero-assenta {
+  from {
+    transform: scale(1.06);
+  }
+  to {
+    transform: none;
+  }
+}
+.hero-foto img,
+.hero-foto video {
+  /* celular: recorte vertical centrado no letreiro e no balcão */
+  object-position: 66% 50%;
+  animation: hero-assenta 1600ms var(--ease-out) 150ms both;
+}
+html.is-loading .hero-foto img,
+html.is-loading .hero-foto video {
+  animation-play-state: paused;
+}
+/* véu para o texto claro. Celular: a foto ocupa o alto da tela e funde no cacau-800 (#3E2E23) da seção,
+   o letreiro fica livre em cima. Desktop: da esquerda, sobre a parede de madeira. */
+.hero-veu {
+  background: linear-gradient(to top, rgb(62 46 35) 0%, rgb(62 46 35) 5%, rgb(62 46 35 / 0.7) 22%, rgb(62 46 35 / 0) 48%);
+}
+@media (min-width: 1024px) {
+  .hero-foto img,
+.hero-foto video {
+    object-position: 50% 50%;
+  }
+  .hero-veu {
+    background:
+      linear-gradient(90deg, rgb(43 32 24 / 0.86) 0%, rgb(43 32 24 / 0.66) 36%, rgb(43 32 24 / 0) 66%),
+      linear-gradient(to top, rgb(43 32 24 / 0.45) 0%, rgb(43 32 24 / 0) 40%);
+  }
+}
+
+/* Botões: o tom muda no hover, a seta anda e o botão afunda no clique */
+.btn {
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease,
+    text-decoration-color 160ms ease,
+    transform 120ms var(--ease-out);
+}
+.btn:active {
+  transform: scale(0.97);
+}
+.btn-arrow {
+  transition: transform 200ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover .btn-arrow {
+    transform: translateX(3px);
+  }
+}
+
+/* Links da navegação: o sublinhado se desenha da esquerda */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 200ms var(--ease-out);
+}
+.nav-link[aria-current="page"]::after {
+  transform: scaleX(1);
+}
+@media (hover: hover) and (pointer: fine) {
+  .nav-link:hover::after {
+    transform: scaleX(1);
+  }
+}
+
+/* Galeria em faixas (GaleriaFaixas): no desktop a foto ativa ocupa ~4x a largura das outras */
+@media (min-width: 1024px) {
+  .faixa {
+    flex: 1 1 0%;
+    transition: flex-grow 700ms var(--ease-in-out);
+    cursor: pointer;
+  }
+  .faixa[data-ativa="true"] {
+    flex-grow: 4.2;
+    cursor: default;
+  }
+  /* a foto da faixa fechada escurece um pouco; a aberta fica limpa */
+  .faixa img {
+    transition: filter 500ms ease, transform 900ms var(--ease-out);
+  }
+  .faixa[data-ativa="false"] img {
+    filter: saturate(0.85) brightness(0.88);
+  }
+}
+
+/* Perguntas frequentes: o "+" vira "−" girando a barra vertical */
+.faq-mais::before,
+.faq-mais::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 16px;
+  height: 1.6px;
+  margin: -0.8px 0 0 -8px;
+  border-radius: 1px;
+  background: currentColor;
+}
+.faq-mais::after {
+  transform: rotate(90deg);
+  transition: transform 240ms var(--ease-out);
+}
+.faq[open] .faq-mais::after {
+  transform: rotate(0deg);
+}
+
+/* Capítulos do Protocolo Sole: o número da etapa ativa escurece */
+.chapter-num {
+  transition: color 240ms ease;
+}
+
+/* Barra fixa de ação no mobile: entra de baixo depois que o hero sai da tela */
+.action-bar {
+  transform: translateY(100%);
+  visibility: hidden;
+  transition:
+    transform 240ms var(--ease-out),
+    visibility 0s linear 240ms;
+}
+.action-bar[data-show="true"] {
+  transform: none;
+  visibility: visible;
+  transition:
+    transform 240ms var(--ease-out),
+    visibility 0s;
+}
+
+/* ---------- Padrões adaptados do motionsites ("Tana Elephant" e "Rare Gallery") ----------
+   Cada um usa a paleta, as fontes e as curvas daqui. Disparam uma vez, sem loop. */
+
+/* 1. Foto que abre de baixo para cima ao entrar na tela (mesmo gesto da foto do hero).
+   O atributo data-revela só é posto pelo JS (useRevela), então sem JS a foto já aparece. */
+.wipe[data-revela="espera"] > .wipe-quadro {
+  clip-path: inset(100% 0 0 0);
+}
+.wipe[data-revela="sim"] > .wipe-quadro {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 1000ms var(--ease-in-out);
+}
+/* quando a foto real entrar como <img> dentro do quadro, ela assenta enquanto a cortina abre */
+.wipe-quadro img {
+  transition: transform 1400ms var(--ease-out);
+}
+.wipe[data-revela="espera"] .wipe-quadro img {
+  transform: scale(1.12);
+}
+
+/* 2. Título do fechamento: cada palavra sobe de dentro de uma máscara, 80ms de intervalo */
+.sobe-mask {
+  display: inline-block;
+  overflow-y: clip;
+  /* folga para descendentes e itálico ("q", "z") sem mudar a altura da linha */
+  padding: 0 0.06em 0.16em;
+  margin: 0 -0.06em -0.16em;
+  vertical-align: top;
+}
+.sobe-palavra {
+  display: inline-block;
+}
+.sobe[data-revela="espera"] .sobe-palavra {
+  transform: translateY(110%);
+}
+.sobe[data-revela="sim"] .sobe-palavra {
+  transform: none;
+  transition: transform 900ms var(--ease-out);
+  transition-delay: calc(var(--i, 0) * 80ms);
+}
+
+/* 3. Menu mobile: os itens entram em cascata curta; o ícone vira X girando as duas barras */
+@keyframes menu-item-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.menu-item {
+  animation: menu-item-in 420ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 40ms + 40ms);
+}
+.menu-icone {
+  position: relative;
+  display: block;
+  width: 20px;
+  height: 9px;
+}
+.menu-icone > span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1.6px;
+  border-radius: 1px;
+  background: currentColor;
+  transition: transform 320ms var(--ease-in-out);
+}
+.menu-icone > span:first-child {
+  top: 0;
+}
+.menu-icone > span:last-child {
+  bottom: 0;
+}
+.menu-icone[data-open="true"] > span:first-child {
+  transform: translateY(3.7px) rotate(45deg);
+}
+.menu-icone[data-open="true"] > span:last-child {
+  transform: translateY(-3.7px) rotate(-45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faixa,
+  .faixa img {
+    transition: none !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+  .menu-item {
+    animation: none;
+  }
+  .menu-icone > span,
+  .wipe-quadro,
+  .wipe-quadro img,
+  .sobe-palavra {
+    transition: none !important;
+  }
+  .wipe-quadro {
+    clip-path: none !important;
+  }
+  .wipe-quadro img,
+  .sobe-palavra {
+    transform: none !important;
+  }
+  .enter,
+  .enter-photo,
+  .hero-foto img,
+.hero-foto video {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    clip-path: none;
+  }
+  .btn,
+  .btn-arrow,
+  .nav-link::after,
+  .action-bar {
+    transition-duration: 0.01ms !important;
+  }
+  .btn:active {
+    transform: none;
+  }
+  [data-w] {
+    opacity: 1 !important;
+  }
+}

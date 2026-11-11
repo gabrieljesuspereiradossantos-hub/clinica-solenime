@@ -1,5 +1,18 @@
-.vercel/
-node_modules/
-dist/
+node_modules
+dist
+.playwright-mcp
+*.log
 .DS_Store
-qa-*.png
+.env
+.env.*
+!.env.example
+
+# imagens geradas por IA (revisar antes de usar)
+gerado/
+
+# antes e depois de pacientes: imagens de saúde, só entram no repositório (público) depois da autorização
+src/assets/resultados/
+# materiais de trabalho que não fazem parte do site
+referencias/
+*.zip
+*.tsbuildinfo
